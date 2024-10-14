@@ -3,49 +3,45 @@ from datetime import datetime
 from tkinter import Tk, filedialog
 from PIL import Image
 
-def select_image_file():
-    # Initialize Tkinter root
-    root = Tk()
-    root.withdraw()  # Hide the root window
-
-    # Open file dialog to select image file
-    file_path = filedialog.askopenfilename(
-        filetypes=[("Image Files", "*.jpg;*.jpeg;*.png;*.bmp;*.gif")]
-    )
-
-    root.destroy()  # Close the Tkinter root window
-    return file_path
-
 def save_image(input_path, output_path, size):
     with Image.open(input_path) as img:
         # Resize the image while maintaining aspect ratio
-        img.thumbnail(size, Image.ANTIALIAS)
-        
+        img.thumbnail(size, Image.LANCZOS)
+
         # Save the image in JPG format with compression
-        img.save(output_path, "JPEG", quality=85)
+        img.save(output_path, "JPEG", quality=80)
 
-def main():
-    file_path = select_image_file()
-    if not file_path:
-        print("No file selected.")
-        return
+# Initialize Tkinter root
+root = Tk()
+root.withdraw()  # Hide the root window
+root.attributes('-topmost', True)  # Bring window to front
+root.lift()  # Lift the window above others
+root.focus_force()  # Focus on the window
 
-    # Get the current date in the required format
-    current_date = datetime.now().strftime("%d.%m.%Y")
+# Open file dialog to select image file
+file_path = filedialog.askopenfilename(
+    filetypes=[("Image Files", "*.jpg;*.jpeg;*.png;*.bmp;*.gif")]
+)
 
-    # Output file names
-    output_filename_1080 = f"{current_date}_1080.jpg"
-    output_filename_720 = f"{current_date}_720.jpg"
+root.destroy()  # Close the Tkinter root window
 
-    # Define output sizes
-    size_1080 = (1920, 1080)
-    size_720 = (1280, 720)
+# Get the directory of the input image file
+input_directory = os.path.dirname(file_path)
 
-    # Save the images with the specified sizes
-    save_image(file_path, output_filename_1080, size=(1920, 1080))
-    save_image(file_path, output_filename_720, size=(1280, 720))
+# Get the current date in the required format
+current_date = datetime.now().strftime("%d.%m.%Y")
 
-    print(f"Saved images: {output_filename_1080} and {output_filename_720}")
+# Output file names
+output_filename_1 = f"{current_date}_1080.jpg"
+output_filename_2 = f"{current_date}_720.jpg"
 
-if name == "main":
-    main()
+# Construct the full file paths for the output images in the same directory as the input file
+output_path_1 = os.path.join(input_directory, output_filename_1)
+output_path_2 = os.path.join(input_directory, output_filename_2)
+
+# Save the images with the specified sizes
+save_image(file_path, output_path_1, size=(1920, 1080))
+save_image(file_path, output_path_2, size=(1280, 720))
+
+print(f"Saved images to:\n{output_path_1}\n{output_path_2}")
+
