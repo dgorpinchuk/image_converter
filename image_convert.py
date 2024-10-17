@@ -1,47 +1,60 @@
 import os
 from datetime import datetime
-from tkinter import Tk, filedialog
+import wx
 from PIL import Image
 
 def save_image(input_path, output_path, size):
-    with Image.open(input_path) as img:
-        # Resize the image while maintaining aspect ratio
-        img.thumbnail(size, Image.LANCZOS)
+    try:
+        with Image.open(input_path) as img:
+            # Resize the image while maintaining aspect ratio
+            img.thumbnail(size, Image.Resampling.LANCZOS)
 
-        # Save the image in JPG format with compression
-        img.save(output_path, "JPEG", quality=80)
+            # Save the image in JPG format with compression
+            img.save(output_path, "JPEG", quality=80)
 
-# Initialize Tkinter root
-root = Tk()
-root.withdraw()  # Hide the root window
-root.attributes('-topmost', True)  # Bring window to front
-root.lift()  # Lift the window above others
-root.focus_force()  # Focus on the window
+    except Exception as e:
+        print(f"Failed to process the image: {e}")
 
-# Open file dialog to select image file
-file_path = filedialog.askopenfilename(
-    filetypes=[("Image Files", "*.jpg;*.jpeg;*.png;*.bmp;*.gif")]
-)
+class MyApp(wx.App):
+    def OnInit(self):
+        # Create a wx FileDialog for image file selection
+        dialog = wx.FileDialog(
+            None, message="Choose an image file",
+            wildcard="Image files (*.jpg;*.jpeg;*.png;*.bmp;*.gif)|*.jpg;*.jpeg;*.png;*.bmp;*.gif",
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST
+        )
 
-root.destroy()  # Close the Tkinter root window
+        if dialog.ShowModal() == wx.ID_OK:
+            file_path = dialog.GetPath()
+            self.process_image(file_path)
+        else:
+            print("No file selected.")
 
-# Get the directory of the input image file
-input_directory = os.path.dirname(file_path)
+        dialog.Destroy()  # Clean up the dialog
+        return False  # Exit the app after the dialog
 
-# Get the current date in the required format
-current_date = datetime.now().strftime("%d.%m.%Y")
+    def process_image(self, file_path):
+        # Get the directory of the input image file
+        input_directory = os.path.dirname(file_path)
 
-# Output file names
-output_filename_1 = f"{current_date}_1080.jpg"
-output_filename_2 = f"{current_date}_720.jpg"
+        # Get the current date in the required format
+        current_date = datetime.now().strftime("%d.%m.%Y")
 
-# Construct the full file paths for the output images in the same directory as the input file
-output_path_1 = os.path.join(input_directory, output_filename_1)
-output_path_2 = os.path.join(input_directory, output_filename_2)
+        # Output file names
+        output_filename_1 = f"{current_date}_1080.jpg"
+        output_filename_2 = f"{current_date}_720.jpg"
 
-# Save the images with the specified sizes
-save_image(file_path, output_path_1, size=(1920, 1080))
-save_image(file_path, output_path_2, size=(1280, 720))
+        # Construct the full file paths for the output images in the same directory as the input file
+        output_path_1 = os.path.join(input_directory, output_filename_1)
+        output_path_2 = os.path.join(input_directory, output_filename_2)
 
-print(f"Saved images to:\n{output_path_1}\n{output_path_2}")
+        # Save the images with the specified sizes
+        save_image(file_path, output_path_1, size=(1920, 1080))
+        save_image(file_path, output_path_2, size=(1280, 720))
 
+        print(f"Saved images to:\n{output_path_1}\n{output_path_2}")
+
+if __name__ == "__main__":
+    # Initialize and run the wx App
+    app = MyApp(False)
+    app.MainLoop()
